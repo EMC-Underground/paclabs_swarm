@@ -9,21 +9,21 @@ provider "vsphere" {
 
 resource "vsphere_virtual_machine" "swarm_manager" {
   name   = "swarm-master"
-  domain = "bluehairfreak.com"
+  domain = "${var.domain}"
   datacenter = "Datacenter"
-  dns_servers = ["10.253.140.73"]
+  dns_servers = ["${var.dns}"]
   cluster = "cluster"
   vcpu   = 2
   memory = 4096
 
   network_interface {
-    label = "VM Network"
+    label = "${var.port_group}"
   }
 
   disk {
     template = "UbuntuTmpl"
     type = "thin"
-    datastore = "datastore1"
+    datastore = "${var.vsphere_datastore}"
   }
 
   provisioner "file" {
@@ -71,23 +71,23 @@ data "external" "swarm_join_token" {
 }
 
 resource "vsphere_virtual_machine" "swarm_worker" {
-  count = 7
+  count = "${var.swarm_worker_count}"
   name   = "swarm-worker-${count.index}"
-  domain = "bluehairfreak.com"
+  domain = "${var.domain}"
   datacenter = "Datacenter"
-  dns_servers = ["10.253.140.73"]
+  dns_servers = ["${var.dns}"]
   cluster = "cluster"
   vcpu   = 2
   memory = 2048
 
   network_interface {
-    label = "VM Network"
+    label = "${var.port_group}"
   }
 
   disk {
     template = "UbuntuTmpl"
     type = "thin"
-    datastore = "datastore1"
+    datastore = "${var.vsphere_datastore}"
   }
 
   provisioner "file" {
