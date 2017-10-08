@@ -11,6 +11,7 @@ resource "vsphere_virtual_machine" "swarm_manager" {
   name   = "swarm-master"
   domain = "bluehairfreak.com"
   datacenter = "Datacenter"
+  dns_servers = ["10.253.140.73"]
   cluster = "cluster"
   vcpu   = 2
   memory = 4096
@@ -22,12 +23,23 @@ resource "vsphere_virtual_machine" "swarm_manager" {
   disk {
     template = "UbuntuTmpl"
     type = "thin"
-    datastore = "ScaleIO"
+    datastore = "datastore1"
   }
 
   provisioner "file" {
     source = "install-docker.sh"
     destination = "/tmp/install-docker.sh"
+
+    connection {
+      type = "ssh"
+      user = "ubuntu"
+      password = "Password#1"
+    }
+  }
+
+  provisioner "file" {
+    source = "keys"
+    destination = "/tmp/keys"
 
     connection {
       type = "ssh"
@@ -59,10 +71,11 @@ data "external" "swarm_join_token" {
 }
 
 resource "vsphere_virtual_machine" "swarm_worker" {
-  count = 3
+  count = 7
   name   = "swarm-worker-${count.index}"
   domain = "bluehairfreak.com"
   datacenter = "Datacenter"
+  dns_servers = ["10.253.140.73"]
   cluster = "cluster"
   vcpu   = 2
   memory = 2048
@@ -74,13 +87,23 @@ resource "vsphere_virtual_machine" "swarm_worker" {
   disk {
     template = "UbuntuTmpl"
     type = "thin"
-    datastore = "ScaleIO"
+    datastore = "datastore1"
   }
-
 
   provisioner "file" {
     source = "install-docker.sh"
     destination = "/tmp/install-docker.sh"
+
+    connection {
+      type = "ssh"
+      user = "ubuntu"
+      password = "Password#1"
+    }
+  }
+
+  provisioner "file" {
+    source = "keys"
+    destination = "/tmp/keys"
 
     connection {
       type = "ssh"

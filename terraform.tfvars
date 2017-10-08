@@ -1,3 +1,3 @@
-vsphere_username="administrator@vsphere.local"
+vsphere_username="administrator@pac.lab"
 vsphere_password="Password#1"
-vsphere_vcenter="192.168.0.35"
+vsphere_vcenter="10.4.44.11"
