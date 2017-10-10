@@ -27,19 +27,8 @@ resource "vsphere_virtual_machine" "swarm_manager" {
   }
 
   provisioner "file" {
-    source = "install-docker.sh"
-    destination = "/tmp/install-docker.sh"
-
-    connection {
-      type = "ssh"
-      user = "ubuntu"
-      password = "Password#1"
-    }
-  }
-
-  provisioner "file" {
-    source = "keys"
-    destination = "/tmp/keys"
+    source = "files/"
+    destination = "/tmp"
 
     connection {
       type = "ssh"
@@ -63,12 +52,12 @@ resource "vsphere_virtual_machine" "swarm_manager" {
   }
 }
 
-data "external" "swarm_join_token" {
-  program = ["./get-join-tokens.sh"]
-  query = {
-    host = "${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}"
-  }
-}
+#data "external" "swarm_join_token" {
+#  program = ["./get-join-tokens.sh"]
+#  query = {
+#    host = "${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}"
+#  }
+#}
 
 resource "vsphere_virtual_machine" "swarm_worker" {
   count = "${var.swarm_worker_count}"
@@ -91,19 +80,8 @@ resource "vsphere_virtual_machine" "swarm_worker" {
   }
 
   provisioner "file" {
-    source = "install-docker.sh"
-    destination = "/tmp/install-docker.sh"
-
-    connection {
-      type = "ssh"
-      user = "ubuntu"
-      password = "Password#1"
-    }
-  }
-
-  provisioner "file" {
-    source = "keys"
-    destination = "/tmp/keys"
+    source = "files/"
+    destination = "/tmp"
 
     connection {
       type = "ssh"
@@ -116,7 +94,7 @@ resource "vsphere_virtual_machine" "swarm_worker" {
     inline = [
       "sudo chmod +x /tmp/install-docker.sh",
       "sudo /tmp/install-docker.sh",
-      "sudo docker swarm join --token ${data.external.swarm_join_token.result.worker} ${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}:2377"
+      "`docker -H=swarm-master:2375 swarm join-token worker | awk '{if(NR>1)print}'`"
     ]
 
     connection {
@@ -126,7 +104,23 @@ resource "vsphere_virtual_machine" "swarm_worker" {
     }
   }
 
+  provisioner "remote-exec" {
+    when = "destroy"
+    on_failure = "continue"
+    inline = [
+      "docker swarm leave",
+      "sleep 15",
+      "docker -H=swarm-master:2375 node rm `docker -H=swarm-master:2375 node ls | grep Down | awk '{print $1;}'`"
+    ]
+
+    connection {
+      type = "ssh"
+      user = "ubuntu"
+      password = "Password#1"
+    }
+  }
 }
+
 output "manager_public_ip" {
   value = "${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}"
 }
