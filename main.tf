@@ -41,7 +41,8 @@ resource "vsphere_virtual_machine" "swarm_manager" {
     inline = [
       "sudo chmod +x /tmp/install-docker.sh",
       "sudo /tmp/install-docker.sh",
-      "sudo docker swarm init --advertise-addr ${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}"
+      "sudo docker swarm init --advertise-addr ${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}",
+      "echo 'y' | sudo docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://192.168.0.120/api SCALEIO_USERNAME=admin SCALEIO_PASSWORD=Password#1 SCALEIO_SYSTEMID=0 SCALEIO_PROTECTIONDOMAINNAME=default SCALEIO_STORAGEPOOLNAME=default REXRAY_LOGLEVEL=debug"
     ]
 
     connection {
@@ -52,14 +53,8 @@ resource "vsphere_virtual_machine" "swarm_manager" {
   }
 }
 
-#data "external" "swarm_join_token" {
-#  program = ["./get-join-tokens.sh"]
-#  query = {
-#    host = "${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}"
-#  }
-#}
-
 resource "vsphere_virtual_machine" "swarm_worker" {
+  depends_on = ["vsphere_virtual_machine.swarm_manager"]
   count = "${var.swarm_worker_count}"
   name   = "swarm-worker-${count.index}"
   domain = "${var.domain}"
@@ -94,7 +89,8 @@ resource "vsphere_virtual_machine" "swarm_worker" {
     inline = [
       "sudo chmod +x /tmp/install-docker.sh",
       "sudo /tmp/install-docker.sh",
-      "`docker -H=swarm-master:2375 swarm join-token worker | awk '{if(NR>1)print}'`"
+      "`docker -H=swarm-master:2375 swarm join-token worker | awk '{if(NR>1)print}'`",
+      "echo 'y' | sudo docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://192.168.0.120/api SCALEIO_USERNAME=admin SCALEIO_PASSWORD=Password#1 SCALEIO_SYSTEMID=0 SCALEIO_PROTECTIONDOMAINNAME=default SCALEIO_STORAGEPOOLNAME=default REXRAY_LOGLEVEL=debug"
     ]
 
     connection {

@@ -21,7 +21,6 @@ sed -i '/ExecStart/c\ExecStart=/usr/bin/dockerd -H 0.0.0.0:2375 -H fd://' /lib/s
 systemctl daemon-reload
 systemctl restart docker
 usermod -a -G docker $USER
-curl -sSL https://dl.bintray.com/emccode/rexray/install | sh
 tar -xvf /tmp/EMC-ScaleIO-sdc-2.0-10000.2072.Ubuntu.16.04.x86_64.tar -C /tmp
 cd /tmp
 /tmp/siob_extract /tmp/EMC-ScaleIO-sdc-2.0-10000.2072.Ubuntu.16.04.x86_64.siob
