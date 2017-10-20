@@ -7,17 +7,17 @@ provider "vsphere" {
   allow_unverified_ssl = true
 }
 
-resource "vsphere_virtual_machine" "swarm_manager" {
+resource "vsphere_virtual_machine" "swarm_master" {
   name   = "swarm-master"
   domain = "${var.domain}"
-  datacenter = "Datacenter"
+  datacenter = "${var.vsphere_datacenter}"
   dns_servers = ["${var.dns}"]
-  cluster = "cluster"
+  cluster = "${var.vsphere_cluster}"
   vcpu   = 2
   memory = 4096
 
   network_interface {
-    label = "${var.port_group}"
+    label = "${var.vsphere_port_group_1}"
   }
 
   disk {
@@ -41,8 +41,9 @@ resource "vsphere_virtual_machine" "swarm_manager" {
     inline = [
       "sudo chmod +x /tmp/install-docker.sh",
       "sudo /tmp/install-docker.sh",
-      "sudo docker swarm init --advertise-addr ${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}",
-      "echo 'y' | sudo docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://192.168.0.120/api SCALEIO_USERNAME=admin SCALEIO_PASSWORD=Password#1 SCALEIO_SYSTEMID=0 SCALEIO_PROTECTIONDOMAINNAME=default SCALEIO_STORAGEPOOLNAME=default REXRAY_LOGLEVEL=debug"
+      "sudo /opt/emc/scaleio/sdc/bin/drv_cfg --add_mdm --ip '${var.scaleio_mdm_ips}' --file /bin/emc/scaleio/drv_cfg.txt",
+      "docker swarm init --advertise-addr ${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}",
+      "echo 'y' | docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://${var.scaleio_gateway_ip}/api SCALEIO_USERNAME=${var.scaleio_username} SCALEIO_PASSWORD=${var.scaleio_password} SCALEIO_SYSTEMID=${var.scaleio_system_id} SCALEIO_PROTECTIONDOMAINNAME=${var.scaleio_protection_domain_name} SCALEIO_STORAGEPOOLNAME=${var.scaleio_storage_pool_name} REXRAY_LOGLEVEL=${var.rexray_log_level}"
     ]
 
     connection {
@@ -54,18 +55,18 @@ resource "vsphere_virtual_machine" "swarm_manager" {
 }
 
 resource "vsphere_virtual_machine" "swarm_worker" {
-  depends_on = ["vsphere_virtual_machine.swarm_manager"]
+  depends_on = ["vsphere_virtual_machine.swarm_master"]
   count = "${var.swarm_worker_count}"
   name   = "swarm-worker-${count.index}"
   domain = "${var.domain}"
-  datacenter = "Datacenter"
+  datacenter = "${var.vsphere_datacenter}"
   dns_servers = ["${var.dns}"]
-  cluster = "cluster"
+  cluster = "${var.vsphere_cluster}"
   vcpu   = 2
   memory = 2048
 
   network_interface {
-    label = "${var.port_group}"
+    label = "${var.vsphere_port_group_1}"
   }
 
   disk {
@@ -89,8 +90,9 @@ resource "vsphere_virtual_machine" "swarm_worker" {
     inline = [
       "sudo chmod +x /tmp/install-docker.sh",
       "sudo /tmp/install-docker.sh",
-      "`docker -H=swarm-master:2375 swarm join-token worker | awk '{if(NR>1)print}'`",
-      "echo 'y' | sudo docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://192.168.0.120/api SCALEIO_USERNAME=admin SCALEIO_PASSWORD=Password#1 SCALEIO_SYSTEMID=0 SCALEIO_PROTECTIONDOMAINNAME=default SCALEIO_STORAGEPOOLNAME=default REXRAY_LOGLEVEL=debug"
+      "sudo /opt/emc/scaleio/sdc/bin/drv_cfg --add_mdm --ip '${var.scaleio_mdm_ips}' --file /bin/emc/scaleio/drv_cfg.txt",
+      "`docker -H=${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}:2375 swarm join-token worker | awk '{if(NR>1)print}'`",
+      "echo 'y' | docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://${var.scaleio_gateway_ip}/api SCALEIO_USERNAME=${var.scaleio_username} SCALEIO_PASSWORD=${var.scaleio_password} SCALEIO_SYSTEMID=${var.scaleio_system_id} SCALEIO_PROTECTIONDOMAINNAME=${var.scaleio_protection_domain_name} SCALEIO_STORAGEPOOLNAME=${var.scaleio_storage_pool_name} REXRAY_LOGLEVEL=${var.rexray_log_level}"
     ]
 
     connection {
@@ -106,7 +108,7 @@ resource "vsphere_virtual_machine" "swarm_worker" {
     inline = [
       "docker swarm leave",
       "sleep 15",
-      "docker -H=swarm-master:2375 node rm `docker -H=swarm-master:2375 node ls | grep Down | awk '{print $1;}'`"
+      "docker -H=${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}:2375 node rm `docker -H=${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}:2375 node ls | grep Down | awk '{print $1;}'`"
     ]
 
     connection {
@@ -117,6 +119,6 @@ resource "vsphere_virtual_machine" "swarm_worker" {
   }
 }
 
-output "manager_public_ip" {
-  value = "${vsphere_virtual_machine.swarm_manager.network_interface.0.ipv4_address}"
+output "master_public_ip" {
+  value = "${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}"
 }
