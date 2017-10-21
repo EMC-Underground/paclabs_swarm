@@ -39,8 +39,8 @@ resource "vsphere_virtual_machine" "swarm_master" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo chmod +x /tmp/install-docker.sh",
-      "sudo /tmp/install-docker.sh",
+      "sudo chmod +x /tmp/setup.sh",
+      "sudo /tmp/setup.sh",
       "sudo /opt/emc/scaleio/sdc/bin/drv_cfg --add_mdm --ip '${var.scaleio_mdm_ips}' --file /bin/emc/scaleio/drv_cfg.txt",
       "docker swarm init --advertise-addr ${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}",
       "echo 'y' | docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://${var.scaleio_gateway_ip}/api SCALEIO_USERNAME=${var.scaleio_username} SCALEIO_PASSWORD=${var.scaleio_password} SCALEIO_SYSTEMID=${var.scaleio_system_id} SCALEIO_PROTECTIONDOMAINNAME=${var.scaleio_protection_domain_name} SCALEIO_STORAGEPOOLNAME=${var.scaleio_storage_pool_name} REXRAY_LOGLEVEL=${var.rexray_log_level}"
@@ -88,8 +88,8 @@ resource "vsphere_virtual_machine" "swarm_worker" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo chmod +x /tmp/install-docker.sh",
-      "sudo /tmp/install-docker.sh",
+      "sudo chmod +x /tmp/setup.sh",
+      "sudo /tmp/setup.sh",
       "sudo /opt/emc/scaleio/sdc/bin/drv_cfg --add_mdm --ip '${var.scaleio_mdm_ips}' --file /bin/emc/scaleio/drv_cfg.txt",
       "`docker -H=${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}:2375 swarm join-token worker | awk '{if(NR>1)print}'`",
       "echo 'y' | docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://${var.scaleio_gateway_ip}/api SCALEIO_USERNAME=${var.scaleio_username} SCALEIO_PASSWORD=${var.scaleio_password} SCALEIO_SYSTEMID=${var.scaleio_system_id} SCALEIO_PROTECTIONDOMAINNAME=${var.scaleio_protection_domain_name} SCALEIO_STORAGEPOOLNAME=${var.scaleio_storage_pool_name} REXRAY_LOGLEVEL=${var.rexray_log_level}"
