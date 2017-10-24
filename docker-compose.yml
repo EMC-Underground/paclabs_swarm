@@ -3,6 +3,8 @@ version: '3'
 services:
   influx:
     image: influxdb
+    networks:
+      - default
     volumes:
       - influx:/var/lib/influxdb
     deploy:
@@ -10,17 +12,26 @@ services:
 
   grafana:
     image: grafana/grafana
-    ports:
-      - 0.0.0.0:80:3000
+    networks:
+      - default
+      - traefik-net
+    environment:
+      - GF_SERVER_ROOT_URL=http://grafana.bluehairfreak.com
     volumes:
       - grafana:/var/lib/grafana
     depends_on:
       - influx
     deploy:
       replicas: 1
+      labels:
+        - "traefik.port=3000"
+        - "traefik.docker.network=traefik-net"
+        - "traefik.frontend.rule=Host:grafana.bluehairfreak.com"
 
   cadvisor:
     image: google/cadvisor
+    networks:
+      - default
     hostname: '{{.Node.ID}}'
     command: -logtostderr -docker_only -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influx:8086
     volumes:
@@ -42,3 +53,9 @@ volumes:
     driver: rexray/scaleio
     driver_opts:
       size: 50
+
+networks:
+  traefik-net:
+    external: true
+  default:
+    external: false
