@@ -1,0 +1,29 @@
+#vSphere Section
+vsphere_username=""
+vsphere_password=""
+vsphere_vcenter=""
+vsphere_port_group_1="VM_6.0_DPortGroup"
+vsphere_port_group_2=""
+vsphere_datastore=""
+vsphere_datacenter="Datacenter"
+vsphere_cluster="cluster"
+vsphere_template="UbuntuTmpl"
+
+#Swarm Section
+swarm_worker_count=5
+
+#Environment Section
+dns=""
+domain=""
+
+#ScaleIO Section
+scaleio_gateway_ip=""
+scaleio_mdm_ips=""
+scaleio_username="admin"
+scaleio_password=""
+scaleio_system_name=""
+scaleio_protection_domain_name=""
+scaleio_storage_pool_name=""
+
+#RexRay Section
+rexray_log_level="debug"

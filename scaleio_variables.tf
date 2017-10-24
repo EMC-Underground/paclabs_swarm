@@ -14,7 +14,7 @@ variable "scaleio_password" {
     description = "The password RexRay will use to connect to the ScaleIO cluster with"
 }
 
-variable "scaleio_system_id" {
+variable "scaleio_system_name" {
     description = "The ID number of the scaleio system found with scli --query_all"
 }
 
