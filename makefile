@@ -4,10 +4,10 @@ init:
 	terraform init
 
 validate: init
-	terraform validate
+	terraform validate -var-file=terraform.tfvars
 
 build: validate
-	terraform apply
+	terraform apply -var-file=terraform.tfvars
 
 debug: validate
 ifeq ($(OS),Windows_NT)
@@ -15,7 +15,7 @@ ifeq ($(OS),Windows_NT)
 else
 	$(TF_LOG=trace)
 endif
-	terraform apply
+	terraform apply -var-file=terraform.tfvars
 
 destroy:
 	echo "yes" | terraform destroy
