@@ -7,7 +7,7 @@ validate: init
 	terraform validate -var-file=terraform.tfvars
 
 build: validate
-	terraform apply -var-file=terraform.tfvars
+	terraform apply -auto-approve -var-file=terraform.tfvars
 
 debug: validate
 ifeq ($(OS),Windows_NT)

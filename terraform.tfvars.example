@@ -1,0 +1,67 @@
+# Provisioner Section
+vm_ssh_username=""
+vm_ssh_password=""
+
+# vSphere Section
+vsphere_username=""
+vsphere_password=""
+vsphere_vcenter="10.0.0.1"
+vsphere_datacenter=""
+vsphere_datastore=""
+vsphere_cluster="cluster/Resources"
+vsphere_port_group_corp=""
+vsphere_port_group_sio1=""
+vsphere_port_group_sio2=""
+vsphere_template="template-centos7"
+vsphere_folder=""
+
+vsphere_vm_name_manager="SwarmManager"
+vsphere_os_hostname_manager="swarmmanager"
+vsphere_vcpu_manager="2"
+vsphere_memory_manager="8192"
+
+vsphere_vm_name_worker="SwarmWorker"
+vsphere_os_hostname_worker="swarmworker"
+vsphere_vcpu_worker="2"
+vsphere_memory_worker="8192"
+
+# Environment Section
+dns=["10.0.0.1","10.0.0.2"]
+dns_search_list=["lab.emc.com"]
+domain="lab.emc.com"
+
+# Swarm Section
+
+# Total number of swarm managers to create
+swarmmanager_count=3
+
+# Array variables for the IPs of each manager
+ipv4_address_manager = ["10.0.2.1","10.0.2.2","10.0.2.3"]
+ipv4_address_manager_sio1 = ["192.168.0.1","192.168.0.2","192.168.0.3"]
+ipv4_address_manager_sio2 = ["192.168.10.1","192.168.10.2","192.168.10.3"]
+
+ipv4_prefix_length_manager = "24"
+ipv4_gateway_manager = "10.0.2.1"
+
+# Total number of swarm workers to create
+swarmworker_count=3
+
+# Array variables for the IPs of each worker
+ipv4_address_worker = ["10.0.2.10","10.0.2.11","10.0.2.12"]
+ipv4_address_worker_sio1 = ["192.168.0.10","192.168.0.11","192.168.0.12"]
+ipv4_address_worker_sio2 = ["192.168.10.10","192.168.10.11","192.168.10.12"]
+
+ipv4_prefix_length_worker = "24"
+ipv4_gateway_worker = "10.0.2.1"
+
+# ScaleIO Section
+scaleio_gateway_ip="10.0.0.1"
+scaleio_mdm_ips="192.168.0.60,192.168.10.60,192.168.0.61,192.168.10.61"
+scaleio_username=""
+scaleio_password=""
+scaleio_system_name=""   # not used
+scaleio_protection_domain_name=""
+scaleio_storage_pool_name=""
+
+# RexRay Section
+rexray_log_level="debug"   # not used
