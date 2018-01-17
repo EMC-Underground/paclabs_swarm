@@ -18,6 +18,13 @@ resource "vsphere_virtual_machine" "swarm_master" {
 
   network_interface {
     label = "${var.vsphere_port_group_1}"
+    ipv4_address = "${var.vsphere_public_ip}"
+    ipv4_prefix_length = "24"
+    ipv4_gateway = "${var.vsphere_gateway}"
+  }
+
+  network_interface {
+    label = "${var.vsphere_port_group_2}"
   }
 
   disk {
@@ -43,7 +50,7 @@ resource "vsphere_virtual_machine" "swarm_master" {
       "sudo /tmp/setup.sh",
       "sudo /opt/emc/scaleio/sdc/bin/drv_cfg --add_mdm --ip '${var.scaleio_mdm_ips}' --file /bin/emc/scaleio/drv_cfg.txt",
       "docker swarm init --advertise-addr ${vsphere_virtual_machine.swarm_master.network_interface.0.ipv4_address}",
-      "echo 'y' | docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://${var.scaleio_gateway_ip}/api SCALEIO_USERNAME=${var.scaleio_username} SCALEIO_PASSWORD=${var.scaleio_password} SCALEIO_SYSTEMNAME=${var.scaleio_system_name} SCALEIO_PROTECTIONDOMAINNAME=${var.scaleio_protection_domain_name} SCALEIO_STORAGEPOOLNAME=${var.scaleio_storage_pool_name} REXRAY_LOGLEVEL=${var.rexray_log_level}"
+      "echo 'y' | docker plugin install rexray/scaleio SCALEIO_ENDPOINT=https://${var.scaleio_gateway_ip}/api SCALEIO_USERNAME=${var.scaleio_username} SCALEIO_PASSWORD=${var.scaleio_password} SCALEIO_SYSTEMNAME=${var.scaleio_system_name} SCALEIO_PROTECTIONDOMAINNAME=${var.scaleio_protection_domain_name} SCALEIO_STORAGEPOOLNAME=${var.scaleio_storage_pool_name} REXRAY_LOGLEVEL=${var.rexray_log_level} REXRAY_PREEMPT=true"
     ]
 
     connection {
@@ -67,6 +74,10 @@ resource "vsphere_virtual_machine" "swarm_worker" {
 
   network_interface {
     label = "${var.vsphere_port_group_1}"
+  }
+
+  network_interface {
+    label = "${var.vsphere_port_group_2}"
   }
 
   disk {
