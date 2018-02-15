@@ -46,11 +46,3 @@ variable "swarm_worker_count" {
     description = "How many workers in the swarm"
     default = 4
 }
-
-variable "vsphere_public_ip" {
-    description = "The IP the resolves to a global DNS entry"
-}
-
-variable "vsphere_gateway" {
-    description = "The network gateway"
-}
